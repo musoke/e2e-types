@@ -1,5 +1,12 @@
 use core::fmt;
+use core::convert::TryFrom;
+use std::ascii::AsciiExt;
 use rand::thread_rng;
+
+#[derive(Fail, Debug, Copy, Clone, PartialEq)]
+pub enum Error {
+    #[fail(display = "invalid characters in DeviceId")] InvalidCharacters,
+}
 
 #[derive(Debug, Clone)]
 pub struct DeviceId {
@@ -13,8 +20,13 @@ impl DeviceId {
         use rand::Rng;
 
         // TODO: Should the device_id be cryptographically random?
-        let device_id = thread_rng().gen_ascii_chars().take(10).collect();
-        DeviceId { id: device_id }
+        let device_id: String = thread_rng()
+            .gen_ascii_chars()
+            .filter(|&c| c.is_ascii_uppercase())
+            .take(10)
+            .collect();
+
+        DeviceId::try_from(&device_id[..]).expect("we just generated it")
     }
 }
 
@@ -24,18 +36,18 @@ impl fmt::Display for DeviceId {
     }
 }
 
-impl<S> From<S> for DeviceId
-where
-    S: Into<String>,
-{
-    /// # Examples
-    ///
-    /// ```
-    /// let d = olm::device::DeviceId::from("DEVID");
-    /// let s: String = d.to_string();
-    /// ```
-    fn from(s: S) -> DeviceId {
-        DeviceId { id: s.into() }
+impl<'a> TryFrom<&'a str> for DeviceId {
+    type Error = Error;
+
+    // TODO: clarify spec's requirements on device_id
+    // All examples I've seen have been uppercase ascii, but this isn't said explicitly, and
+    // presumably there is some length limit.
+    fn try_from(s: &'a str) -> Result<DeviceId, Error> {
+        if s.is_ascii_uppercase() {
+            Ok(DeviceId { id: s.into() })
+        } else {
+            Err(Error::InvalidCharacters)
+        }
     }
 }
 
@@ -47,4 +59,22 @@ impl DeviceId {
 }
 
 #[cfg(test)]
-mod test {}
+mod test {
+    use super::DeviceId;
+    use core::convert::TryFrom;
+    use std::ascii::AsciiExt;
+
+    #[test]
+    fn from_invalid_string() {
+        let device_id = DeviceId::try_from("abc.");
+
+        assert!(device_id.is_err());
+    }
+
+    #[test]
+    fn generate() {
+        let device_id = DeviceId::new();
+
+        assert!(device_id.id.is_ascii_uppercase());
+    }
+}
