@@ -1,10 +1,21 @@
 use core::fmt;
+use rand::thread_rng;
 
 #[derive(Debug, Clone)]
 pub struct DeviceId {
     // TODO: Any requirements on format? Spec just says string; most examples seem to be ~10 upper
     // case letters
     id: String,
+}
+
+impl DeviceId {
+    pub fn new() -> DeviceId {
+        use rand::Rng;
+
+        // TODO: Should the device_id be cryptographically random?
+        let device_id = thread_rng().gen_ascii_chars().take(10).collect();
+        DeviceId { id: device_id }
+    }
 }
 
 impl fmt::Display for DeviceId {
@@ -34,3 +45,6 @@ impl DeviceId {
         self.id.clone()
     }
 }
+
+#[cfg(test)]
+mod test {}
