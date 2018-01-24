@@ -51,13 +51,6 @@ impl<'a> TryFrom<&'a str> for DeviceId {
     }
 }
 
-// TODO: Rewrite with std::convert
-impl DeviceId {
-    pub fn to_string(&self) -> String {
-        self.id.clone()
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::DeviceId;
