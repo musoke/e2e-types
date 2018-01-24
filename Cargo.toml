@@ -1,0 +1,6 @@
+[package]
+name = "e2e-types"
+version = "0.1.0"
+authors = ["Nathan Musoke <nathan.musoke@gmail.com>"]
+
+[dependencies]
