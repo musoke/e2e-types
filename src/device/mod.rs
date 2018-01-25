@@ -9,7 +9,7 @@ pub enum Error {
     #[fail(display = "invalid characters in DeviceId")] InvalidCharacters,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DeviceId(
     // TODO: Any requirements on format? Spec just says string; most examples seem to be ~10 upper
     // case letters
