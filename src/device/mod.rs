@@ -2,13 +2,14 @@ use core::fmt;
 use core::convert::TryFrom;
 use std::ascii::AsciiExt;
 use rand::thread_rng;
+// use serde::{Deserialize, Serialize, Serializer};
 
-#[derive(Fail, Debug, Copy, Clone, PartialEq)]
+#[derive(Fail, Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Error {
     #[fail(display = "invalid characters in DeviceId")] InvalidCharacters,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, PartialEq, Deserialize)]
 pub struct DeviceId(
     // TODO: Any requirements on format? Spec just says string; most examples seem to be ~10 upper
     // case letters
@@ -69,5 +70,38 @@ mod test {
         let device_id = DeviceId::new();
 
         assert!(device_id.0.is_ascii_uppercase());
+    }
+}
+
+#[cfg(test)]
+mod test_serde {
+    use core::convert::TryFrom;
+    use super::DeviceId;
+    use serde_json;
+    // use serde_test::{assert_tokens, Token};
+
+    #[test]
+    fn serialize_valid() {
+        let d = "AAA";
+        let device_id = DeviceId::try_from(d).expect("valid device ID");
+
+        // assert_tokens(&device_id, &[Token::Str(&d[..])]);
+        assert_eq!(
+            serde_json::to_string(&device_id).expect("Failed to convert device_id to JSON"),
+            format!(r#""{}""#, d)
+        )
+    }
+
+    #[test]
+    fn deserialize_valid() {
+        let d = "AAA";
+        let s = format!(r#""{}""#, d);
+        let device_id = DeviceId::try_from(d).expect("valid device ID");
+
+        // assert_tokens(&device_id, &[Token::Str(&d[..])]);
+        assert_eq!(
+            serde_json::from_str::<DeviceId>(&s).expect("Failed to convert device_id to JSON"),
+            device_id
+        )
     }
 }
